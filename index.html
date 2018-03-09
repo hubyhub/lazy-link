@@ -63,9 +63,11 @@
     }
 
     .link {
-        margin-bottom:10px;
-        position:relative;
-        width:250px;
+        margin-bottom: 10px;
+        position: relative;
+        width: 400px;
+        border-bottom: 1px solid #dadada;
+        padding-bottom: 10px;
     }
 
     .remove-icon {
@@ -73,6 +75,14 @@
         top:0;
         right:0;
         cursor:pointer;
+        background-image: url(assets/img/delete.svg);
+        width:24px;
+        height:24px;
+        opacity:0.6;
+    }
+
+    .remove-icon:hover {
+        opacity:0.4;
     }
 
     header {
@@ -114,6 +124,11 @@
         cursor : pointer;
         color:#333;
         font-size:14px;
+    }
+    .new-entry:before{
+        content:"➕";
+        position:absolute;
+        left:-1.2em;
     }
 
     table {
@@ -215,7 +230,7 @@
     </header>
 
     <div class="results" >
-        <span v-on:click="isVisibleAddForm=true" class="new-entry">New Link</span>
+        <span v-on:click="isVisibleAddForm=true" class="new-entry"> New Link</span>
 
         <div v-if="search.length > 0">
             <p class="number-of-results" >{{filteredLinks.length}} results found</p>
@@ -232,7 +247,7 @@
             <span class="tags">
                 <span class="tag" v-for="tag in link.tags">{{tag}}</span>
             </span>
-            <span class="remove-icon" v-on:click="removeLink(key)">[X]</span>
+            <span class="remove-icon" v-on:click="removeLink(key)"></span>
         </p>
     </div>
     <div class="modal-layer" v-if="isVisibleAddForm">
