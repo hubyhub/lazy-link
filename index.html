@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lazy Link</title>
+</head>
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .brand-color {
+        background-color:#59c6d6;
+    }
+
+    body {
+        margin:0;
+        padding:0;
+        font-family: "Verdana";
+    }
+
+    h1 {
+        color:#ffffff;
+    }
+
+    h2 {
+        font-size: 14px;
+        font-weight: normal;
+        padding: 8px 10px;
+        margin:0;
+        color:#fff;
+    }
+
+    .search-area {
+        text-align: center;
+    }
+
+    .title {
+        font-weight:bold;
+        color:#333;
+        display:block;
+    }
+
+    .url {
+        color:#888;
+    }
+
+    .tags
+    {
+        display:block;
+        padding-top:3px;
+    }
+
+    .tag {
+        background-color: #eaeaea;
+        padding: 3px 7px;
+        border-radius: 5px;
+        margin-right: 7px;
+    }
+    .description{
+        display:block;
+    }
+
+    .link {
+        margin-bottom:10px;
+        position:relative;
+        width:250px;
+    }
+
+    .remove-icon {
+        position:absolute;
+        top:0;
+        right:0;
+        cursor:pointer;
+    }
+
+    header {
+        overflow: auto;
+        padding-bottom:20px;
+        border-bottom: 2px solid #b9715b;
+    }
+
+    input[type="text"] {
+        height:30px;
+        padding-left:10px;
+        line-height:30px;
+        color:#333;
+        background-color:#fffaf5;
+        width:100%;
+        box-shadow: inset 0 2px 4px 0 hsla(0, 0%, 0%, 0.08);
+    }
+
+    #search {
+        width:300px;
+    }
+
+    .number-of-results {
+        color: #808080;
+    }
+
+    .results {
+        padding-left:30px;
+        position:relative;
+        overflow: auto;
+    }
+
+    .new-entry {
+        position: absolute;
+        top:20px;
+        right:20px;
+        text-decoration: underline;
+        font-weight: bold;
+        cursor : pointer;
+        color:#333;
+        font-size:14px;
+    }
+
+    table {
+        width:100%
+    }
+
+    th {
+        text-align: right;
+        padding-right: 10px;
+        font-weight: normal;
+        font-size: 14px;
+    }
+
+    td {
+        padding:3px 0;
+        width: 100%;
+    }
+
+
+    .button-area {
+        text-align: right;
+        background: hsl(0, 0%, 97%);
+        padding: 20px;
+    }
+
+    button {
+        border-radius: 2px;
+        height: 36px;
+        font-size: 14px;
+        min-width: 88px;
+        outline: 0;
+        text-transform: uppercase;
+        text-decoration: none;
+        position: relative;
+        vertical-align: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        background-color: #1867c0;
+        border-color: #1867c0;
+        color:#ffffff;
+        font-weight:bold;
+        box-shadow: 0 4px 6px 0 hsla(0, 0%, 0%, 0.2);
+    }
+    button:hover {
+        opacity:0.9;
+    }
+    button.cancel {
+        background: none;
+        border: none;
+        box-shadow: none;
+        color: #4a4a4a;
+    }
+    button:disabled {
+        opacity:0.3;
+    }
+
+    .modal-layer {
+        position:fixed;
+        top:0;
+        left:0;
+        bottom:0;
+        width:100%;
+        background-color: rgba(0,0,0,0.6);
+        z-index:10;
+    }
+
+    .modal-dialog {
+        position:absolute;
+        width: 450px;
+        display: block;
+        background-color:#fff;
+        top:50%;
+        left:50%;
+        transform: translate(-50%,-100%);
+        box-shadow: 0 4px 6px 0 hsla(0, 0%, 0%, 0.2);
+    }
+
+    .modal-content {
+        padding:20px;
+    }
+
+    textarea{
+        width:100%;
+        height:50px;
+    }
+
+</style>
+<body>
+
+
+<div id="app">
+    <header class="brand-color">
+        <div class="search-area">
+            <h1>Lazy Link</h1>
+            <input type="text" v-model="search" id="search" placeholder="Search" autocomplete="off">
+        </div>
+    </header>
+
+    <div class="results" >
+        <span v-on:click="isVisibleAddForm=true" class="new-entry">New Link</span>
+
+        <div v-if="search.length > 0">
+            <p class="number-of-results" >{{filteredLinks.length}} results found</p>
+        </div>
+        <div v-else>
+            <p class="number-of-results" >All links</p>
+        </div>
+
+
+        <p v-for="(link, key) in filteredLinks" class="link">
+            <span class="title">{{link.title}}</span>
+            <span class="url">{{link.url}}</span>
+            <span class="description" v-html="link.description"></span>
+            <span class="tags">
+                <span class="tag" v-for="tag in link.tags">{{tag}}</span>
+            </span>
+            <span class="remove-icon" v-on:click="removeLink(key)">[X]</span>
+        </p>
+    </div>
+    <div class="modal-layer" v-if="isVisibleAddForm">
+
+        <div class="modal-dialog">
+            <h2 class="brand-color">Add new Link</h2>
+            <div class="modal-content">
+                <table>
+                    <tr>
+                        <th>
+                            <label for="title">Title:</label>
+                        </th>
+                        <td>
+                            <input id="title" type="text" v-model="title" placeholder="Title" autocomplete="off" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="url">URL:</label>
+                        </th>
+                        <td>
+                            <input id="url" type="text" v-model="url" placeholder="www.example.com" autocomplete="off" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="url">Description:</label>
+                        </th>
+                        <td>
+                            <textarea v-model="description"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="tags">Tags:</label>
+                        </th>
+                        <td>
+                            <input id="tags" type="text" v-model="tags" placeholder="Tag1, Tag2,..." autocomplete="off" >
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="button-area">
+                <button v-on:click="cancelAddLink" class="cancel">Cancel</button>
+                <button v-on:click="addLink"  class="add" v-bind:disabled="!isInputFieldsFilled">Add</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script src="vue.js"></script>
+<script>
+
+    function addLink() {
+            if(!this.isInputFieldsFilled) { return; }
+
+            this.links.push(
+                {
+                    title : this.title,
+                    url : this.url,
+                    description : this.description.replace(/\r?\n/g, '<br />'),
+                    tags : this.tags.split(",").join(" ").split(" ").filter(function(tags){
+                        return tags.length > 0
+                    })
+                }
+            );
+
+            resetAddLinkForm();
+            setLocalstorage.call(this);
+    }
+
+    function setLocalstorage(){
+        window.localStorage.setItem("links", JSON.stringify(this.links) );
+    }
+
+    function removeLink(index){
+        this.links.splice(index, 1);
+        window.localStorage.setItem("links", JSON.stringify(this.links) );
+    }
+
+    function resetAddLinkForm(){
+        this.title          = "";
+        this.url            = "";
+        this.tags           = "";
+        this.description    = "";
+    }
+
+    function cancelAddLink() {
+        this.isVisibleAddForm = false;
+        resetAddLinkForm.call(this);
+    }
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            search : "",
+            links : [],
+            url: "",
+            title: "",
+            tags: "",
+            description : "",
+            error:"",
+            isVisibleAddForm : false
+        },
+        methods : {
+            addLink : addLink,
+            removeLink : removeLink,
+            cancelAddLink : cancelAddLink
+        },
+        computed : {
+            filteredLinks : function(){
+                var self = this;
+
+                function getMatchingLinks(){
+                    return self.links.filter(function(link) {
+                        var titleStartsWithText, urlIncludesText, atLeastOneTagStartsWithText;
+
+                        titleStartsWithText     = link.title.toLowerCase().startsWith(self.search.toLowerCase());
+                        urlIncludesText         = link.url.toLocaleLowerCase().indexOf(self.search.toLocaleLowerCase()) !== -1;
+                        atLeastOneTagStartsWithText = link.tags.some(function(tag) {
+                            return tag.toLocaleLowerCase().startsWith(self.search.toLocaleLowerCase());
+                        });
+
+                        return titleStartsWithText || urlIncludesText || atLeastOneTagStartsWithText;
+                    });
+                }
+
+                return getMatchingLinks();
+
+            },
+            isInputFieldsFilled : function() {
+                return this.title && this.title.length > 0 && this.url && this.url.length > 0;
+            }
+        },
+        mounted : function() {
+            var links, linksArray;
+            links = window.localStorage.getItem("links");
+
+            if (links && Array.isArray(JSON.parse(links)) ) {
+                linksArray = JSON.parse(links);
+                this.links = linksArray;
+            } else {
+                window.localStorage.removeItem("links");
+            }
+        }
+    })
+
+</script>
+</body>
+</html>
